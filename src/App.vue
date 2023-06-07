@@ -1,23 +1,25 @@
 <script setup lang="ts">
-import {computed, reactive, ref} from "vue";
+import { computed, ref } from 'vue'
 
 interface ITodo {
-  text: string;
-  done: boolean;
-  id: number;
+  text: string
+  done: boolean
+  id: number
 }
 
-type TFilter = "all" | "todo" | "done";
+type TFilter = 'all' | 'todo' | 'done'
 
 /* Static Data */
 const labels = {
-  button: "Ajouter TODO",
-  empty: "Rien à faire !",
+  button: 'Ajouter TODO',
+  empty: 'Rien à faire !',
   filters: {
-    all: "Tous",
-    todo: "À Faire",
-    done: "Terminé"
-  }
+    all: 'Tous',
+    todo: 'À Faire',
+    done: 'Terminé'
+  },
+  notAllDone: 'Tout cocher',
+  allDone: 'Tout décocher'
 }
 
 /* Methods */
@@ -26,73 +28,104 @@ function handleSubmit() {
     const newTodoObject: ITodo = {
       text: newTodo.value as string,
       done: false,
-      id: todos.length + 1
+      id: todos.value.length + 1
     }
-    todos.push(newTodoObject);
-    newTodo.value = null;
+    todos.value.push(newTodoObject)
+    newTodo.value = null
   }
 }
 
+function handleDoneChange() {
+  const newValue = !allDone.value
+  todos.value.map((todo) => (todo.done = newValue))
+}
+
 /* Data */
-const newTodo = ref<string | null>(null);
-const todos = reactive<Array<ITodo>>([]);
-const currentFilter = ref<TFilter>("todo");
+const newTodo = ref<string | null>(null)
+const todos = ref<Array<ITodo>>([])
+const currentFilter = ref<TFilter>('todo')
 
 /* Computed */
-const filteredTodos = computed(() => {
-  if (currentFilter.value === "todo") {
-    return todos.filter(todo => !todo.done)
-  } else if (currentFilter.value === "done") {
-    return todos.filter(todo => todo.done)
+const filteredTodos = computed<Array<ITodo>>(() => {
+  if (currentFilter.value === 'todo') {
+    return todos.value.filter((todo) => !todo.done)
+  } else if (currentFilter.value === 'done') {
+    return todos.value.filter((todo) => todo.done)
   } else {
-    return todos
+    return todos.value
   }
 })
-const emptyCondition = computed<boolean>(() => {
-  return todos.length === 0 || (todos.length > 0 && todos.every(todo => todo.done))
-})
+const emptyCondition = computed<boolean>(() => todos.value.length === 0)
+const allDone = computed<boolean>(() => todos.value.every((todo) => todo.done))
+const indeterminate = computed<boolean>(
+  () => !todos.value.every((todo) => todo.done) && todos.value.some((todo) => todo.done)
+)
 </script>
 
 <template>
+  <h1 class="TodoApp__Title">Todo App</h1>
   <div class="TodoApp__Content">
     <div class="TodoApp__Todos">
-      <div v-for="(todo, index) of filteredTodos" :key="index + todo.id"
-           :class="['TodoApp__Todo', { 'TodoApp__Todo_isDone': todo.done}]">
-        <input type="checkbox" v-model="todo.done"/>
+      <div class="TodoApp__Empty" v-if="emptyCondition || allDone">{{ labels.empty }}</div>
+      <div
+        v-for="(todo, index) of filteredTodos"
+        :key="index + todo.id"
+        :class="['TodoApp__Todo', { TodoApp__Todo_isDone: todo.done }]"
+      >
+        <input type="checkbox" v-model="todo.done" />
         <span>{{ todo.id }} : {{ todo.text }}</span>
       </div>
     </div>
-    <div>{{ emptyCondition ? labels.empty : "" }}</div>
     <div class="TodoApp__Filters">
       <div class="TodoApp__Filter">
-        <input type="radio" name="filters" id="all" value="all" v-model="currentFilter">
+        <input type="radio" name="filters" id="all" value="all" v-model="currentFilter" />
         <label for="all">{{ labels.filters.all }}</label>
       </div>
       <div class="TodoApp__Filter">
-        <input type="radio" name="filters" id="todo" value="todo" v-model="currentFilter">
+        <input type="radio" name="filters" id="todo" value="todo" v-model="currentFilter" />
         <label for="todo">{{ labels.filters.todo }}</label>
       </div>
       <div class="TodoApp__Filter">
-        <input type="radio" name="filters" id="done" value="done" v-model="currentFilter">
+        <input type="radio" name="filters" id="done" value="done" v-model="currentFilter" />
         <label for="done">{{ labels.filters.done }}</label>
       </div>
     </div>
+    <div class="TodoApp__AllDone" v-if="!emptyCondition">
+      <input
+        type="checkbox"
+        id="allDone"
+        :checked="allDone"
+        :indeterminate="indeterminate"
+        @change="handleDoneChange"
+      />
+      <label for="allDone" v-if="allDone">{{ labels.allDone }}</label>
+      <label for="allDone" v-else>{{ labels.notAllDone }}</label>
+    </div>
   </div>
   <form class="TodoApp__Form" @submit.stop.prevent="handleSubmit">
-    <input class="new-todo" v-model="newTodo">
+    <input class="new-todo" v-model="newTodo" />
     <button type="submit">{{ labels.button }}</button>
   </form>
 </template>
 
 <style lang="scss">
-
 .TodoApp {
+  &__Title {
+    font-size: 18px;
+    text-align: center;
+    margin: 0;
+  }
 
   &__Content {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    margin-bottom: 10px;
+    margin: 10px 0;
+  }
+
+  &__Empty {
+    text-align: center;
+    font-size: 12px;
   }
 
   &__Todos {
@@ -125,6 +158,12 @@ const emptyCondition = computed<boolean>(() => {
   &__Filter {
     font-size: 12px;
     color: gray;
+  }
+
+  &__AllDone {
+    font-size: 12px;
+    color: gray;
+    text-align: center;
   }
 
   &__Form {
