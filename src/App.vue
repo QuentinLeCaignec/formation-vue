@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {reactive, ref} from "vue";
+import {computed, reactive, ref} from "vue";
 
 interface ITodo {
   text: string;
@@ -7,9 +7,13 @@ interface ITodo {
   id: number;
 }
 
-const newTodo = ref<string | null>(null);
-const todos = reactive<Array<ITodo>>([]);
+/* Static Data */
+const labels = {
+  button: "Ajouter TODO",
+  empty: "Rien à faire !"
+}
 
+/* Methods */
 function handleSubmit() {
   if (newTodo.value !== null) {
     const newTodoObject: ITodo = {
@@ -21,6 +25,15 @@ function handleSubmit() {
     newTodo.value = null;
   }
 }
+
+/* Data */
+const newTodo = ref<string | null>(null);
+const todos = reactive<Array<ITodo>>([]);
+
+/* Computed */
+const emptyCondition = computed<boolean>(() => {
+  return todos.length === 0 || (todos.length > 0 && todos.every(todo => todo.done))
+})
 </script>
 
 <template>
@@ -29,9 +42,10 @@ function handleSubmit() {
     <input type="checkbox" v-model="todo.done"/>
     <span>{{ todo.id }} : {{ todo.text }}</span>
   </div>
+  <div>{{ emptyCondition ? labels.empty : "" }}</div>
   <form @submit.stop.prevent="handleSubmit">
     <input class="new-todo" v-model="newTodo">
-    <button type="submit">Ajouter TODO</button>
+    <button type="submit">{{ labels.button }}</button>
   </form>
 </template>
 
