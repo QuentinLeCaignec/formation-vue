@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-
-interface ITodo {
-  text: string
-  done: boolean
-  id: number
-}
+import {computed, ref} from 'vue'
+import type {ITodo} from "@/components/TodoItem.vue";
+import TodoItem from "@/components/TodoItem.vue";
 
 type TFilter = 'all' | 'todo' | 'done'
 
@@ -23,6 +19,16 @@ const labels = {
 }
 
 /* Methods */
+function handleDoneChange() {
+  const newValue = !allDone.value
+  todos.value.map((todo) => (todo.done = newValue))
+}
+
+function handleUpdateTodo(updatedTodo: ITodo) {
+  const i = todos.value.findIndex(todo => todo.id === updatedTodo.id)
+  todos.value[i] = updatedTodo;
+}
+
 function handleSubmit() {
   if (newTodo.value !== null) {
     const newTodoObject: ITodo = {
@@ -33,11 +39,6 @@ function handleSubmit() {
     todos.value.push(newTodoObject)
     newTodo.value = null
   }
-}
-
-function handleDoneChange() {
-  const newValue = !allDone.value
-  todos.value.map((todo) => (todo.done = newValue))
 }
 
 /* Data */
@@ -58,52 +59,46 @@ const filteredTodos = computed<Array<ITodo>>(() => {
 const emptyCondition = computed<boolean>(() => todos.value.length === 0)
 const allDone = computed<boolean>(() => todos.value.every((todo) => todo.done))
 const indeterminate = computed<boolean>(
-  () => !todos.value.every((todo) => todo.done) && todos.value.some((todo) => todo.done)
+    () => !todos.value.every((todo) => todo.done) && todos.value.some((todo) => todo.done)
 )
 </script>
 
 <template>
   <h1 class="TodoApp__Title">Todo App</h1>
   <div class="TodoApp__Content">
-    <div class="TodoApp__Todos">
-      <div class="TodoApp__Empty" v-if="emptyCondition || allDone">{{ labels.empty }}</div>
-      <div
-        v-for="(todo, index) of filteredTodos"
-        :key="index + todo.id"
-        :class="['TodoApp__Todo', { TodoApp__Todo_isDone: todo.done }]"
-      >
-        <input type="checkbox" v-model="todo.done" />
-        <span>{{ todo.id }} : {{ todo.text }}</span>
-      </div>
-    </div>
+    <ul class="TodoApp__Todos">
+      <li class="TodoApp__Empty" v-if="emptyCondition || allDone">{{ labels.empty }}</li>
+      <TodoItem v-for="(todo, index) of filteredTodos" :key="`${index}_${todo.id}`"
+                :todo="todo" @todo:update="handleUpdateTodo"/>
+    </ul>
     <div class="TodoApp__Filters">
       <div class="TodoApp__Filter">
-        <input type="radio" name="filters" id="all" value="all" v-model="currentFilter" />
+        <input type="radio" name="filters" id="all" value="all" v-model="currentFilter"/>
         <label for="all">{{ labels.filters.all }}</label>
       </div>
       <div class="TodoApp__Filter">
-        <input type="radio" name="filters" id="todo" value="todo" v-model="currentFilter" />
+        <input type="radio" name="filters" id="todo" value="todo" v-model="currentFilter"/>
         <label for="todo">{{ labels.filters.todo }}</label>
       </div>
       <div class="TodoApp__Filter">
-        <input type="radio" name="filters" id="done" value="done" v-model="currentFilter" />
+        <input type="radio" name="filters" id="done" value="done" v-model="currentFilter"/>
         <label for="done">{{ labels.filters.done }}</label>
       </div>
     </div>
     <div class="TodoApp__AllDone" v-if="!emptyCondition">
       <input
-        type="checkbox"
-        id="allDone"
-        :checked="allDone"
-        :indeterminate="indeterminate"
-        @change="handleDoneChange"
+          type="checkbox"
+          id="allDone"
+          :checked="allDone"
+          :indeterminate="indeterminate"
+          @change="handleDoneChange"
       />
       <label for="allDone" v-if="allDone">{{ labels.allDone }}</label>
       <label for="allDone" v-else>{{ labels.notAllDone }}</label>
     </div>
   </div>
   <form class="TodoApp__Form" @submit.stop.prevent="handleSubmit">
-    <input class="new-todo" v-model="newTodo" />
+    <input class="new-todo" v-model="newTodo"/>
     <button type="submit">{{ labels.button }}</button>
   </form>
 </template>
@@ -132,17 +127,6 @@ const indeterminate = computed<boolean>(
     display: flex;
     flex-direction: column;
     gap: 5px;
-  }
-
-  &__Todo {
-    padding: 5px;
-    background: blanchedalmond;
-    border-radius: 5px;
-    border: solid 1px gray;
-
-    &_isDone {
-      text-decoration-line: line-through;
-    }
   }
 
   &__Filters {
