@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
-import type {ITodo} from "@/components/TodoItem.vue";
-import TodoItem from "@/components/TodoItem.vue";
+import type {ITodo} from '@/types/todo'
+import TodoItem from '@/components/TodoItem.vue'
 
 type TFilter = 'all' | 'todo' | 'done'
 
@@ -25,8 +25,13 @@ function handleDoneChange() {
 }
 
 function handleUpdateTodo(updatedTodo: ITodo) {
-  const i = todos.value.findIndex(todo => todo.id === updatedTodo.id)
-  todos.value[i] = updatedTodo;
+  console.log(updatedTodo)
+  const i = todos.value.findIndex((todo) => todo.id === updatedTodo.id)
+  todos.value[i] = updatedTodo
+}
+
+function handleRemove(removedTodo: ITodo) {
+  todos.value = todos.value.filter(todo => todo.id !== removedTodo.id)
 }
 
 function handleSubmit() {
@@ -34,7 +39,7 @@ function handleSubmit() {
     const newTodoObject: ITodo = {
       text: newTodo.value as string,
       done: false,
-      id: todos.value.length + 1
+      id: ++increment.value,
     }
     todos.value.push(newTodoObject)
     newTodo.value = null
@@ -42,9 +47,10 @@ function handleSubmit() {
 }
 
 /* Data */
-const newTodo = ref<string | null>(null)
-const todos = ref<Array<ITodo>>([])
-const currentFilter = ref<TFilter>('todo')
+const increment = ref<number>(0);
+const newTodo = ref<string | null>(null);
+const todos = ref<Array<ITodo>>([]);
+const currentFilter = ref<TFilter>('todo');
 
 /* Computed */
 const filteredTodos = computed<Array<ITodo>>(() => {
@@ -68,8 +74,14 @@ const indeterminate = computed<boolean>(
   <div class="TodoApp__Content">
     <ul class="TodoApp__Todos">
       <li class="TodoApp__Empty" v-if="emptyCondition || allDone">{{ labels.empty }}</li>
-      <TodoItem v-for="(todo, index) of filteredTodos" :key="`${index}_${todo.id}`"
-                :todo="todo" @todo:update="handleUpdateTodo"/>
+      <TodoItem
+          v-for="(todo, index) of filteredTodos"
+          :key="`${index}_${todo.id}`"
+          :todo="todo"
+          @todo:update="handleUpdateTodo"
+      >
+        <button class="TodoApp__Button" @click="handleRemove(todo)">X</button>
+      </TodoItem>
     </ul>
     <div class="TodoApp__Filters">
       <div class="TodoApp__Filter">
@@ -124,6 +136,9 @@ const indeterminate = computed<boolean>(
   }
 
   &__Todos {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -157,6 +172,11 @@ const indeterminate = computed<boolean>(
     flex-direction: column;
     gap: 3px;
     padding: 5px;
+  }
+
+  &__Button {
+    height: 50%;
+    margin: auto;
   }
 }
 </style>
