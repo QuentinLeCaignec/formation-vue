@@ -1,0 +1,51 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TodoItem > renders 1`] = `
+<li
+  class="TodoItem__Container"
+>
+  <div
+    class="TodoItem"
+  >
+    <input
+      type="checkbox"
+    />
+    <span
+      data-testid="test-text"
+    >
+      mon texte
+    </span>
+  </div>
+  <input
+    data-testid="test-checkbox"
+    type="checkbox"
+  />
+  
+  
+</li>
+`;
+
+exports[`TodoItem > renders and displays prop text 1`] = `
+<li
+  class="TodoItem__Container"
+>
+  <div
+    class="TodoItem"
+  >
+    <input
+      type="checkbox"
+    />
+    <span
+      data-testid="test-text"
+    >
+      mon texte
+    </span>
+  </div>
+  <input
+    data-testid="test-checkbox"
+    type="checkbox"
+  />
+  
+  
+</li>
+`;

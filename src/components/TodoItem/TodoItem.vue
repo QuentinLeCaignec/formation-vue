@@ -43,12 +43,12 @@ watch(isEditing, async () => {
     <div :class="['TodoItem', { TodoItem_isDone: todo.done }]">
       <input type="checkbox" :checked="todo.done" @change="handleDone"
              :disabled="isEditing"/>
-      <span v-if="!isEditing">{{ todo.text }}</span>
+      <span v-if="!isEditing" data-testid="test-text">{{ todo.text }}</span>
       <form v-else @submit.prevent="handleUpdate">
-        <input name="text" :value="todo.text" ref="inputRef"/>
+        <input name="text" :value="todo.text" ref="inputRef" data-testid="test-input"/>
       </form>
     </div>
-    <input type="checkbox" v-model="isEditing">
+    <input type="checkbox" v-model="isEditing" data-testid="test-checkbox">
     <slot/>
   </li>
 </template>
