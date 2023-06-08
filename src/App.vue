@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue'
+import {computed, onMounted, onUpdated, ref} from 'vue'
 import type {ITodo} from '@/types/todo'
 import TodoItem from '@/components/TodoItem.vue'
+import {isTodo, removeNulls} from "@/lib/utilities";
 
 type TFilter = 'all' | 'todo' | 'done'
 
@@ -25,13 +26,20 @@ function handleDoneChange() {
 }
 
 function handleUpdateTodo(updatedTodo: ITodo) {
-  console.log(updatedTodo)
   const i = todos.value.findIndex((todo) => todo.id === updatedTodo.id)
   todos.value[i] = updatedTodo
 }
 
 function handleRemove(removedTodo: ITodo) {
   todos.value = todos.value.filter(todo => todo.id !== removedTodo.id)
+}
+
+function getHighestIdIncrement() {
+  return todos.value.reduce((max, todo) => todo.id > max ? todo.id : max, 0)
+}
+
+function getTodosFromStorage(): Array<ITodo> {
+ return [...JSON.parse(localStorage.getItem("todos"))].filter(todo => isTodo(todo)).filter(removeNulls);
 }
 
 function handleSubmit() {
@@ -47,10 +55,11 @@ function handleSubmit() {
 }
 
 /* Data */
-const increment = ref<number>(0);
+const todos = ref<Array<ITodo>>(getTodosFromStorage());
 const newTodo = ref<string | null>(null);
-const todos = ref<Array<ITodo>>([]);
+const increment = ref<number>(getHighestIdIncrement());
 const currentFilter = ref<TFilter>('todo');
+const inputRef = ref<HTMLInputElement>();
 
 /* Computed */
 const filteredTodos = computed<Array<ITodo>>(() => {
@@ -67,6 +76,16 @@ const allDone = computed<boolean>(() => todos.value.every((todo) => todo.done))
 const indeterminate = computed<boolean>(
     () => !todos.value.every((todo) => todo.done) && todos.value.some((todo) => todo.done)
 )
+
+onMounted(() => {
+  inputRef.value?.focus();
+})
+
+onUpdated(() => {
+  if (todos.value.length > 0) {
+    localStorage.setItem("todos", JSON.stringify(todos.value));
+  }
+})
 </script>
 
 <template>
@@ -110,7 +129,7 @@ const indeterminate = computed<boolean>(
     </div>
   </div>
   <form class="TodoApp__Form" @submit.stop.prevent="handleSubmit">
-    <input class="new-todo" v-model="newTodo"/>
+    <input class="new-todo" v-model="newTodo" ref="inputRef"/>
     <button type="submit">{{ labels.button }}</button>
   </form>
 </template>
